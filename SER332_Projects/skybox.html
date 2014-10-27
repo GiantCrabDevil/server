@@ -1,0 +1,186 @@
+<html>
+	<head>
+		<title>Damon Cost - Skybox</title>
+		<style>canvas { width: 90%; height: 90% }</style>
+	</head>
+	<body>
+		<a href="index.html"><br>
+		Click to return home.</a><br><br>
+		<form>
+			Message: <input type="text" id="message" value=" " size="45">
+			Debug: <input type="text" id="debug" value=" " size="35">
+		</form>
+		<script src="lib/three.js"></script>
+		<script src="lib/OrbitControls.js"></script>
+		<script language="javascript">
+			var scene, camera, renderer, aLight, controls, centerMat,
+				petalMat, centerMesh, petalMesh;
+			
+			setup();
+			drawAxes();
+			animate();
+			
+			function render(){
+			
+				flower1.visible = false;
+				mirrorCam.updateCubeMap(renderer, scene);
+				refractCam.updateCubeMap(renderer, scene);
+				flower1.visible = true;
+				renderer.render(scene, camera);
+			}
+			
+			function animate(){
+				requestAnimationFrame(animate);
+				controls.update();
+			}
+			
+			function drawFlowerCenter(size){
+				geo = new THREE.SphereGeometry(size, size*4, size*4);
+				matrx = new THREE.Matrix4();
+				matrx.makeScale(1,0.25,1);
+				geo.applyMatrix(matrx);
+				centerMesh = new THREE.Mesh(geo, centerMat);
+				centerMesh.castShadow = true;
+				centerMesh.receiveShadow = true;
+				return centerMesh;
+			}
+			
+			// this function puts the flower petal meshes into a list
+			function drawPetals(size, number){
+				var stack = new Array();
+				matrx = new THREE.Matrix4();
+				mScale = new THREE.Matrix4();
+				mRot = new THREE.Matrix4();
+				mTrans = new THREE.Matrix4();
+				mScale.makeScale(1,0.25,0.5);
+				mTrans.makeTranslation(size*2, 0, 0);
+				for (var i = 0; i < number; i++){
+					geo = new THREE.SphereGeometry(size, size*4, size*4);
+					mRot.makeRotationY((2*(Math.PI) / number) * i);
+					matrx.multiplyMatrices(mRot, mScale);
+					matrx.multiply(mTrans);
+					geo.applyMatrix(matrx);	
+					petalMesh = new THREE.Mesh(geo, petalMat);
+					petalMesh.castShadow = true;
+					petalMesh.receiveShadow = true;
+					stack.push(petalMesh);
+				}
+				return stack;		
+			}
+			
+			function drawFlower(centerRadius, numPetals){
+				//centerMat = new THREE.MeshPhongMaterial({color: 0xf4dc3d});
+				//petalMat = new THREE.MeshPhongMaterial({color: 0xf43dc6});
+				
+				center = drawFlowerCenter(centerRadius);
+				
+				petals = new drawPetals(centerRadius, numPetals);
+				for (var i = petals.length; i >= 0; i--){
+					center.add(petals.pop());
+				}
+				
+				return center;
+			}
+			
+			function drawAxes(){
+				var greenLine = new THREE.LineBasicMaterial({color: 0x00ff00});
+				var blueLine = new THREE.LineBasicMaterial({color: 0x0000ff});
+				var redLine = new THREE.LineBasicMaterial({color: 0xff0000});
+				var xAxisGeo = new THREE.Geometry();
+				var yAxisGeo = new THREE.Geometry();
+				var zAxisGeo = new THREE.Geometry();
+				xAxisGeo.vertices.push(new THREE.Vector3(-50,0,0));
+				xAxisGeo.vertices.push(new THREE.Vector3(50,0,0));
+				yAxisGeo.vertices.push(new THREE.Vector3(0,-50,0));
+				yAxisGeo.vertices.push(new THREE.Vector3(0,50,0));
+				zAxisGeo.vertices.push(new THREE.Vector3(0,0,-50));
+				zAxisGeo.vertices.push(new THREE.Vector3(0,0,50));
+				
+				var xAxis = new THREE.Line(xAxisGeo, greenLine);
+				var yAxis = new THREE.Line(yAxisGeo, blueLine);
+				var zAxis = new THREE.Line(zAxisGeo, redLine);
+				
+				scene.add(xAxis);
+				scene.add(yAxis);
+				scene.add(zAxis);
+			}
+			
+			function message(msg){
+				document.getElementById('message').value=msg
+			}
+			
+			function debug(msg){
+				document.getElementById('debug').value=msg
+			}
+			
+			function setup(){
+				scene = new THREE.Scene();
+				
+				camera = new THREE.PerspectiveCamera(10,
+					window.innerWidth/window.innerHeight, 1, 5000);
+				camera.position.set(250,250,250);
+				
+				renderer = new THREE.WebGLRenderer();
+				renderer.setSize(window.innerWidth, window.innerHeight);
+				
+				dLight = new THREE.DirectionalLight(0xffffff, 0.75);
+				//d2Light = new THREE.DirectionalLight(0xffffff, 0.75);
+				dLight.position.set(0,1,0);
+				//d2Light.position.set(0,-1,0);
+				//scene.add(d2Light);
+				scene.add(dLight);
+				
+				var imagePrefix = "SER322/";
+				var directions  = ["posx", "negx", "posy", "negy", "posz", "negz"];
+				var imageSuffix = ".jpg";
+				var skyGeometry = new THREE.CubeGeometry( 500, 500, 500 );	
+				
+				var materialArray = [];
+				for (var i = 0; i < 6; i++)
+					materialArray.push( new THREE.MeshBasicMaterial({
+						map: THREE.ImageUtils.loadTexture( imagePrefix + directions[i] + imageSuffix ),
+						side: THREE.BackSide
+					}));
+				var skyMaterial = new THREE.MeshFaceMaterial( materialArray );
+				var skyBox = new THREE.Mesh( skyGeometry, skyMaterial );
+				scene.add( skyBox );
+				
+				
+				document.body.appendChild(renderer.domElement);
+				
+				controls = new THREE.OrbitControls(camera,
+					renderer.domElement);
+				controls.addEventListener('change', render);
+				
+				//reflect
+				mirrorCam = new THREE.CubeCamera( 0.1, 500, 64 );
+				scene.add(mirrorCam);
+				centerMat = new THREE.MeshBasicMaterial({envMap: mirrorCam.renderTarget});
+				petalMat = new THREE.MeshBasicMaterial({envMap: mirrorCam.renderTarget});
+				flower1 = drawFlower(6, 16);
+				flower1.position.x = -50;
+				
+				//refract
+				refractCam = new THREE.CubeCamera(0.1, 250, 64);
+				scene.add(refractCam);
+				refractCam.renderTarget.mapping = new THREE.CubeRefractionMapping();
+				centerMat = new THREE.MeshBasicMaterial({color: 0xccccff, envMap: refractCam.renderTarget, refractionRatio: 0.785, reflectivity: 0.9});
+				petalMat = new THREE.MeshBasicMaterial({color: 0xccccff, envMap: refractCam.renderTarget, refractionRatio: 0.785, reflectivity: 0.9});
+				flower2 = drawFlower(6, 16);
+				flower2.position.x = 0;
+				
+				centerMat = new THREE.MeshBasicMaterial({color: 0xffff00, transparent: true, opacity: 0.5});
+				petalMat = centerMat;
+				flower3 = drawFlower(6, 16);
+				flower3.position.x = 50;
+				scene.add(flower1);
+				scene.add(flower2);
+				scene.add(flower3);
+				
+
+				
+			}
+			
+		</script>
+	</body>
+</html>

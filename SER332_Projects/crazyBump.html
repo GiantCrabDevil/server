@@ -1,0 +1,165 @@
+<html>
+	<head>
+		<title>Damon Cost - Crazy Bump Sphere</title>
+		<style>canvas { width: 90%; height: 90% }</style>
+	</head>
+	<body>
+		<a href="index.html"><br>
+		Click to return home.</a><br><br>
+		<form>
+			Message: <input type="text" id="message" value=" " size="45">
+			Debug: <input type="text" id="debug" value=" " size="35">
+		</form>
+		<script src="lib/three.js"></script>
+		<script src="lib/OrbitControls.js"></script>
+		<script src="lib/ShaderLib.js"></script>
+		<script src="lib/ImageUtils.js"></script>
+		<script language="javascript">
+			var scene, camera, renderer, dLight, controls, normalmap, normalSphere, displaceSphere;
+			
+			setup();
+			//drawAxes();
+			animate();
+			
+			function render(){
+				renderer.render(scene, camera);
+			}
+			
+			function animate(){
+				requestAnimationFrame(animate);
+				controls.update();
+			}
+				
+			function drawAxes(){
+				var greenLine = new THREE.LineBasicMaterial({color: 0x00ff00});
+				var blueLine = new THREE.LineBasicMaterial({color: 0x0000ff});
+				var redLine = new THREE.LineBasicMaterial({color: 0xff0000});
+				var xAxisGeo = new THREE.Geometry();
+				var yAxisGeo = new THREE.Geometry();
+				var zAxisGeo = new THREE.Geometry();
+				xAxisGeo.vertices.push(new THREE.Vector3(-50,0,0));
+				xAxisGeo.vertices.push(new THREE.Vector3(50,0,0));
+				yAxisGeo.vertices.push(new THREE.Vector3(0,-50,0));
+				yAxisGeo.vertices.push(new THREE.Vector3(0,50,0));
+				zAxisGeo.vertices.push(new THREE.Vector3(0,0,-50));
+				zAxisGeo.vertices.push(new THREE.Vector3(0,0,50));
+				
+				var xAxis = new THREE.Line(xAxisGeo, greenLine);
+				var yAxis = new THREE.Line(yAxisGeo, blueLine);
+				var zAxis = new THREE.Line(zAxisGeo, redLine);
+				
+				scene.add(xAxis);
+				scene.add(yAxis);
+				scene.add(zAxis);
+			}
+			
+			function getChar(event){
+				event = event || window.event;
+				message(event.keyCode);
+				if(event.keyCode == 68) {
+					if(normalmap) {
+						scene.remove(normalSphere);
+						scene.add(displaceSphere);
+						normalmap = false;
+					} else {
+						scene.remove(displaceSphere);
+						scene.add(normalSphere);
+						normalmap = true;
+					}
+					render();
+				}
+			}
+			
+			
+			
+			function message(msg){
+				document.getElementById('message').value=msg
+			}
+			
+			function debug(msg){
+				document.getElementById('debug').value=msg
+			}
+			
+			function setup(){
+				normalmap = true;
+				scene = new THREE.Scene();
+				
+				camera = new THREE.PerspectiveCamera(10,
+					window.innerWidth/window.innerHeight, 1, 5000);
+				camera.position.set(100,100,100);
+				
+				renderer = new THREE.WebGLRenderer();
+				renderer.setSize(window.innerWidth, window.innerHeight);
+				
+				dLight = new THREE.DirectionalLight(0xffffff, 0.75);
+				//d2Light = new THREE.DirectionalLight(0xffffff, 0.75);
+				dLight.position.set(0,1,0);
+				//d2Light.position.set(0,-1,0);
+				//scene.add(d2Light);
+				scene.add(dLight);
+				
+				var normalGeo = new THREE.SphereGeometry(10, 30, 30);
+				var displaceGeo = new THREE.SphereGeometry(10, 30, 30);			
+				
+				
+				
+				
+				var ambient = 0x050505, diffuse = 0x331100, specular = 0xffffff, shininess = 10, scale = 23;
+				var shader = THREE.ShaderLib[ "normalmap" ];
+				var uniforms = THREE.UniformsUtils.clone( shader.uniforms );
+				
+				//uniforms[ "enableAO" ].value = true;
+				uniforms[ "enableDiffuse" ].value = false;
+				uniforms[ "enableSpecular" ].value = false;
+				uniforms[ "enableReflection" ].value = true;
+				uniforms[ "enableDisplacement" ].value = true;
+				
+				uniforms[ "tNormal" ].value = THREE.ImageUtils.loadTexture( "SER322/normals.jpg" );
+				uniforms[ "uNormalScale" ].value.y = -1;
+				uniforms[ "tDisplacement" ].value = THREE.ImageUtils.loadTexture( "SER322/displacement.jpg" );
+				uniforms[ "uDisplacementBias" ].value = - 0.4;
+				uniforms[ "uDisplacementScale" ].value = 2.4;
+
+				
+				var parameters = { fragmentShader: shader.fragmentShader, vertexShader: shader.vertexShader, uniforms: uniforms, lights: true, fog: false };
+				
+				var displaceMat = new THREE.ShaderMaterial( parameters );
+				
+				var normalMat = new THREE.MeshPhongMaterial( {
+					color: diffuse,
+					specular: specular,
+					ambient: ambient,
+					shininess: shininess,
+					normalMap: uniforms[ "tNormal" ].value,
+					normalScale: uniforms[ "uNormalScale" ].value,
+					combine: THREE.MixOperation,
+					reflectivity: 0.1
+				} );
+				
+				displaceGeo.computeTangents();
+				normalSphere = new THREE.Mesh(normalGeo, normalMat);
+				displaceSphere = new THREE.Mesh(displaceGeo, displaceMat);
+				
+				
+				renderer.gammaInput = true;
+				renderer.gammaOutput = true;
+
+				renderer.shadowMapEnabled = true;
+				renderer.shadowMapType = THREE.PCFShadowMap;
+				
+				scene.add(normalSphere);
+				
+				document.onkeydown = getChar;
+				
+				document.body.appendChild(renderer.domElement);
+				
+				controls = new THREE.OrbitControls(camera,
+					renderer.domElement);
+				controls.addEventListener('change', render);
+
+				
+			}
+			
+		</script>
+	</body>
+</html>

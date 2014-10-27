@@ -1,0 +1,266 @@
+<html>
+	<head>
+		<title>Damon Cost - Disco Flowers</title>
+		<style>canvas { width: 90%; height: 90% }</style>
+	</head>
+	<body>
+		<a href="index.html"><br>
+		Click to return home.</a><br><br>
+		<form>
+			Message: <input type="text" id="message" value=" " size="45">
+			Debug: <input type="text" id="debug" value=" " size="35">
+		</form>
+		<script src="lib/three.js"></script>
+		<script src="lib/OrbitControls.js"></script>
+		<script language="javascript">
+			// for commenting refer to discoScene3view.html
+			var sceneLight;
+			var scene, camera, renderer, aLight, controls, centerMat,
+				petalMat, centerMesh, petalMesh, floorSize, discoHeight,
+				discoRadius, spotLightAngle, numLights, clock, db, fps;
+			var lights = new Array();
+			var spotLights = new Array();
+			
+			init();
+			setup();
+			drawAxes();
+			animate();
+			
+			function init(){
+				sceneLight = false;
+				floorSize = 600;
+				discoHeight = 200;
+				discoRadius = 20;
+				spotLightAngle = 15;
+				numLights = 8;
+			}
+			
+			function render(){
+				var tick = clock.getDelta();
+				fps = 1/tick;
+				debug(fps);
+				db.rotation.y = db.rotation.y += (Math.PI/(15*fps));
+				for(var i = 0, length = spotLights.length; i < length; i++){
+					position = new THREE.Vector3();
+					position.setFromMatrixPosition(lights[i].matrixWorld);
+					spotLights[i].target.position.set(position.x, position.y, position.z);
+				}
+			
+				renderer.render(scene, camera);
+			}
+			
+			function animate(){
+
+				requestAnimationFrame(animate);
+				controls.update();
+			}
+			
+			function drawFlowerCenter(size){
+				geo = new THREE.SphereGeometry(size, size, size);
+				matrx = new THREE.Matrix4();
+				matrx.makeScale(1,0.25,1);
+				geo.applyMatrix(matrx);
+				centerMesh = new THREE.Mesh(geo, centerMat);
+				centerMesh.castShadow = true;
+				centerMesh.receiveShadow = true;
+				return centerMesh;
+			}
+			
+			// this function puts the flower petal meshes into a list
+			function drawPetals(size, number){
+				var stack = new Array();
+				matrx = new THREE.Matrix4();
+				mScale = new THREE.Matrix4();
+				mRot = new THREE.Matrix4();
+				mTrans = new THREE.Matrix4();
+				mScale.makeScale(1,0.25,0.5);
+				mTrans.makeTranslation(size*2, 0, 0);
+				for (var i = 0; i < number; i++){
+					geo = new THREE.SphereGeometry(size, size, size);
+					mRot.makeRotationY((2*(Math.PI) / number) * i);
+					matrx.multiplyMatrices(mRot, mScale);
+					matrx.multiply(mTrans);
+					geo.applyMatrix(matrx);	
+					petalMesh = new THREE.Mesh(geo, petalMat);
+					petalMesh.castShadow = true;
+					petalMesh.receiveShadow = true;
+					stack.push(petalMesh);
+				}
+				return stack;		
+			}
+			
+			function drawFlowerStem(height){
+				var geo = new THREE.CylinderGeometry(2, 4, height, 20);
+				var mat = new THREE.MeshPhongMaterial({color: 0x00ff00});
+				var mesh = new THREE.Mesh(geo, mat);
+				mesh.position.y = -height/2
+				mesh.castShadow = true;
+				mesh.receiveShadow = true;
+				return mesh;
+			}
+			
+			function drawFlower(centerRadius, numPetals, stemHeight){
+				centerMat = new THREE.MeshPhongMaterial({color: 0xf4dc3d});
+				petalMat = new THREE.MeshPhongMaterial({color: 0xf43dc6});
+				
+				center = drawFlowerCenter(centerRadius);
+				
+				petals = new drawPetals(centerRadius, numPetals);
+				for (var i = petals.length; i >= 0; i--){
+					center.add(petals.pop());
+				}
+				
+				var stem = new drawFlowerStem(stemHeight);
+				center.add(stem);
+				return center;
+			}
+			
+			function drawRandFlower(){
+				var stemHeight = randInt(40,120);
+				var flower = new drawFlower(randInt(16,30), randInt(4,22), stemHeight);
+				flower.position.set(randInt(-floorSize/2.5,floorSize/2.5),stemHeight,randInt(-floorSize/2.5,floorSize/2.5));
+				return flower;
+			}
+			
+			function drawFloor(){
+				var geo = new THREE.PlaneGeometry(floorSize, floorSize);
+				var mat = new THREE.MeshPhongMaterial({color:0xffffff, side: THREE.DoubleSide});
+				var plane = new THREE.Mesh(geo, mat);
+				plane.rotation.x = Math.PI/2;
+				plane.receiveShadow = true;
+				scene.add(plane);
+			}
+			
+			function drawAxes(){
+				var greenLine = new THREE.LineBasicMaterial({color: 0x00ff00});
+				var blueLine = new THREE.LineBasicMaterial({color: 0x0000ff});
+				var redLine = new THREE.LineBasicMaterial({color: 0xff0000});
+				var xAxisGeo = new THREE.Geometry();
+				var yAxisGeo = new THREE.Geometry();
+				var zAxisGeo = new THREE.Geometry();
+				xAxisGeo.vertices.push(new THREE.Vector3(-50,0,0));
+				xAxisGeo.vertices.push(new THREE.Vector3(50,0,0));
+				yAxisGeo.vertices.push(new THREE.Vector3(0,-50,0));
+				yAxisGeo.vertices.push(new THREE.Vector3(0,50,0));
+				zAxisGeo.vertices.push(new THREE.Vector3(0,0,-50));
+				zAxisGeo.vertices.push(new THREE.Vector3(0,0,50));
+				
+				var xAxis = new THREE.Line(xAxisGeo, greenLine);
+				var yAxis = new THREE.Line(yAxisGeo, blueLine);
+				var zAxis = new THREE.Line(zAxisGeo, redLine);
+				
+				scene.add(xAxis);
+				scene.add(yAxis);
+				scene.add(zAxis);
+			}
+			
+			function discoBall(x, y, z, rad){
+				var lightGeo, spotLight;
+				
+				var ballGeo = new THREE.SphereGeometry(rad, rad*2, rad*2);
+				var ballMat = new THREE.MeshLambertMaterial({color:0xcccccc});
+				var ballMesh = new THREE.Mesh(ballGeo, ballMat);
+				ballMesh.position.set(x, y, z);
+				
+				lightGeo = new THREE.SphereGeometry(rad/6, rad, rad);
+				var lightMat = new THREE.MeshLambertMaterial({color:0xffffff});
+				var lightMesh = new THREE.Mesh(lightGeo, lightMat);
+				
+				matrx = new THREE.Matrix4();
+				mScale = new THREE.Matrix4();
+				mRotX = new THREE.Matrix4();
+				mRotY = new THREE.Matrix4();
+				mTrans = new THREE.Matrix4();
+				
+				for (var i = 0; i < numLights/2; i++){
+					for (var j = 0; j < 2; j++){
+						lightMesh = new THREE.Mesh(lightGeo, lightMat);
+						mScale.makeScale(1,1,1);
+						mTrans.makeTranslation(0, -rad, 0);
+						mRotX.makeRotationX(0.5*j + Math.PI*55/180);
+						mRotY.makeRotationY(i*Math.PI/2 + j*Math.PI/4);
+						matrx.multiplyMatrices(mRotY, mRotX);
+						matrx.multiply(mScale);
+						matrx.multiply(mTrans);
+						lightMesh.applyMatrix(matrx);
+						//lightMesh.castShadow = true;
+						lights.push(lightMesh);
+						ballMesh.add(lightMesh);
+					}
+				}
+				
+				ballMesh.updateMatrixWorld(true);
+				var position;
+				for(var i = 0; i < 7; i++){
+					spotLight = new THREE.SpotLight(randHex(), 1.0, discoHeight*2, Math.PI*spotLightAngle/180, 10);
+					spotLight.position.set(0,discoHeight+rad,0);
+					spotLight.castShadow = true;
+					position = new THREE.Vector3();
+					position.setFromMatrixPosition(lights[i].matrixWorld);
+					spotLight.target.position.set(position.x, position.y, position.z);
+					spotLights.push(spotLight);
+					scene.add(spotLight);
+				}					
+				return ballMesh;
+			}
+			
+			function randInt(min, max){
+				return Math.floor(Math.random() * (max - min + 1)) + min;
+			}
+			
+			function randHex(){
+				return Math.floor(Math.random() * 0xffffff);
+			}
+			
+			function message(msg){
+				document.getElementById('message').value=msg
+			}
+			
+			function debug(msg){
+				document.getElementById('debug').value=msg
+			}
+			
+			function setup(){
+				scene = new THREE.Scene();
+				
+				clock = new THREE.Clock();
+				
+				camera = new THREE.PerspectiveCamera(10,
+					window.innerWidth/window.innerHeight, 1, 30000);
+				camera.position.set(1500,1500,1500);
+				
+				renderer = new THREE.WebGLRenderer();
+				renderer.setSize(window.innerWidth, window.innerHeight);
+				renderer.shadowMapEnabled = true;
+				
+				if (sceneLight == true) {
+					dLight = new THREE.PointLight(0xffffff, 1, discoHeight);
+					dLight.position.set(0,discoHeight/2,0);
+					dLight.receiveShadow;
+					scene.add(dLight);
+				}
+				
+				document.body.appendChild(renderer.domElement);			
+				
+				controls = new THREE.OrbitControls(camera,
+					renderer.domElement);
+				controls.addEventListener('change', render);
+				
+				var floor = new drawFloor();
+				scene.add(floor);
+				
+				var randomFlower;
+				for (var i=0; i<10; i++){
+					randomFlower = new drawRandFlower();
+					scene.add(randomFlower);
+				}
+				
+				db = new discoBall(0, discoHeight, 0, discoRadius);
+				scene.add(db);
+				
+
+			}
+			
+		</script>
+	</body>
+</html>

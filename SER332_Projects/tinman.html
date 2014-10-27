@@ -1,0 +1,187 @@
+<html>
+	<head>
+		<title>Damon Cost - Flower</title>
+		<style>canvas { width: 90%; height: 90% }</style>
+	</head>
+	<body>
+		<a href="index.html"><br>
+		Click to return home.</a><br><br>
+		<form>
+			Message: <input type="text" id="message" value=" " size="45">
+			Debug: <input type="text" id="debug" value=" " size="35">
+		</form>
+		<script src="lib/three.js"></script>
+		<script src="lib/OrbitControls.js"></script>
+		<script language="javascript">
+			var scene, camera, renderer, dLight, controls, handMat, hatMat, bodyMat, headMat, legMat, handGeo, hatGeo, bodyGeo, headGeo, legGeo, handMeshR, handMeshL, hatMesh, bodyMesh, headMesh, legMeshL, legMeshR, reverse, neg, state;
+			
+			setup();
+			drawAxes();
+			animate();
+			
+			function render(){
+				dLight.position = camera.position;
+				if(reverse == 90){
+					reverse = 0;
+					neg = -neg
+				}
+				if(state == 'idle'){
+					handMeshR.rotation.x -= Math.PI/90 * neg;
+					headMesh.rotation.x -= Math.PI/225 * neg;
+				}
+				if(state == 'walk'){
+					
+					legMeshL.rotation.x -= Math.PI/225 * neg;
+					legMeshR.rotation.x += Math.PI/225 * neg;
+				}
+				reverse++;
+				renderer.render(scene, camera);
+			}
+			
+			function animate(){
+				requestAnimationFrame(animate);
+				controls.update();
+			}
+			
+			function drawAxes(){
+				var greenLine = new THREE.LineBasicMaterial({color: 0x00ff00});
+				var blueLine = new THREE.LineBasicMaterial({color: 0x0000ff});
+				var redLine = new THREE.LineBasicMaterial({color: 0xff0000});
+				var xAxisGeo = new THREE.Geometry();
+				var yAxisGeo = new THREE.Geometry();
+				var zAxisGeo = new THREE.Geometry();
+				xAxisGeo.vertices.push(new THREE.Vector3(-50,0,0));
+				xAxisGeo.vertices.push(new THREE.Vector3(50,0,0));
+				yAxisGeo.vertices.push(new THREE.Vector3(0,-50,0));
+				yAxisGeo.vertices.push(new THREE.Vector3(0,50,0));
+				zAxisGeo.vertices.push(new THREE.Vector3(0,0,-50));
+				zAxisGeo.vertices.push(new THREE.Vector3(0,0,50));
+				
+				var xAxis = new THREE.Line(xAxisGeo, greenLine);
+				var yAxis = new THREE.Line(yAxisGeo, blueLine);
+				var zAxis = new THREE.Line(zAxisGeo, redLine);
+				
+				scene.add(xAxis);
+				scene.add(yAxis);
+				scene.add(zAxis);
+			}
+			
+			function message(msg){
+				document.getElementById('message').value=msg
+			}
+			
+			function debug(msg){
+				document.getElementById('debug').value=msg
+			}
+			
+			function datTinman(size){
+				bodyGeo = new THREE.CylinderGeometry(size, size, size*3, 25);
+				bodyMesh = new THREE.Mesh(bodyGeo, bodyMat);
+				
+				headGeo = new THREE.SphereGeometry(size, 15, 15);
+				headMesh = new THREE.Mesh(headGeo, headMat);
+				headMesh.position.y = size*2.5;
+				bodyMesh.add(headMesh);
+				
+				hatGeo = new THREE.CylinderGeometry(0, size, size, 25);
+				hatMesh = new THREE.Mesh(hatGeo, hatMat);
+				hatMesh.position.y = size;
+				headMesh.add(hatMesh);
+				
+				legGeo = new THREE.CylinderGeometry(size/4, size/4, size*3, 25);
+				legGeo.applyMatrix(new THREE.Matrix4().makeTranslation(0, -size*1.5, 0));
+				legMeshR = new THREE.Mesh(legGeo, legMat);
+				legMeshR.position.y = -size*1.5;
+				legMeshR.position.x = size/2;
+				bodyMesh.add(legMeshR);
+				
+				legMeshL = new THREE.Mesh(legGeo, legMat);
+				legMeshL.position.y = -size*1.5;
+				legMeshL.position.x = -size/2;
+				bodyMesh.add(legMeshL);
+				
+				handGeo = new THREE.CylinderGeometry(size/8, size/8, size*2, 15);
+				handGeo.applyMatrix(new THREE.Matrix4().makeTranslation(0, size, 0));
+				handMeshR = new THREE.Mesh(handGeo, handMat);
+				handMeshR.position.y = size/2;
+				handMeshR.position.x = size + size/8;
+				handMeshR.rotateOnAxis(new THREE.Vector3(1,0,0), Math.PI); 
+				handMeshR.rotateOnAxis(new THREE.Vector3(0,0,1), -Math.PI/6);
+				
+				bodyMesh.add(handMeshR);
+				
+				handMeshL = new THREE.Mesh(handGeo, handMat);
+				handMeshL.position.y = size/2;
+				handMeshL.position.x = -(size + size/8);
+				handMeshL.rotateOnAxis(new THREE.Vector3(0,0,1), Math.PI/6);
+				bodyMesh.add(handMeshL);
+				
+				bodyMesh.traverse( function ( object ) 
+				{
+				if ( object instanceof THREE.Mesh ) 
+				{
+				object.castShadow = true;
+				object.receiveShadow = true;
+				}
+				} );
+				
+				//bodyMesh.castShadow = true;
+				//bodyMesh.receiveShadow = true;
+				
+				return bodyMesh;
+			}
+			
+			function setup(){
+				scene = new THREE.Scene();
+				
+				reverse = 0;
+				neg = 1;
+				//state = 'idle';
+				state = 'walk';
+				
+				camera = new THREE.PerspectiveCamera(10,
+					window.innerWidth/window.innerHeight, 1, 10000);
+				camera.position.set(750,750,1000);
+				
+				renderer = new THREE.WebGLRenderer();
+				renderer.setSize(window.innerWidth, window.innerHeight);
+				renderer.shadowMapEnabled = true;
+				
+				dLight = new THREE.DirectionalLight(0xbbbbbb, 0.75);
+				sLight = new THREE.SpotLight(0xffffff);
+				dLight.position.set(1,1,1);
+				sLight.position.set(100,100,100);
+				sLight.castShadow = true;
+				scene.add(sLight);
+				scene.add(dLight);
+				
+				document.body.appendChild(renderer.domElement);			
+				
+				controls = new THREE.OrbitControls(camera,
+					renderer.domElement);
+				controls.addEventListener('change', render);
+				
+				bodyMat = new THREE.MeshLambertMaterial({color: 0x119a01});
+				headMat = new THREE.MeshLambertMaterial({color: 0xf43dc6});
+				hatMat = new THREE.MeshLambertMaterial({color: 0xff0000});
+				legMat = new THREE.MeshLambertMaterial({color: 0x0000ff});
+				handMat = new THREE.MeshLambertMaterial({color: 0xffff00});
+				floorMat = new THREE.MeshLambertMaterial({color: 0xaaaaaa});
+				
+				tinMan = datTinman(10);
+				
+				floorGeo = new THREE.PlaneGeometry(400, 400);
+				floor = new THREE.Mesh(floorGeo, floorMat);
+				floor.rotation.x = -Math.PI / 2;
+				floor.position.y = -45;
+				floor.receiveShadow = true;
+
+				scene.add(tinMan);
+				scene.add(floor);
+
+				
+			}
+			
+		</script>
+	</body>
+</html>

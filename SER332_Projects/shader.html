@@ -1,0 +1,268 @@
+<html>
+	<head>
+		<title>Damon Cost - Shader</title>
+		<style>canvas { width: 90%; height: 90% }</style>
+	</head>
+	<body>
+		<a href="index.html"><br>
+		Click to return home.</a><br><br>
+		<script src="lib/three.js"></script>
+		<script src="lib/OrbitControls.js"></script>
+		<script src="lib/ShaderLib.js"></script>
+		<script src="lib/ImageUtils.js"></script>
+		<script type='text/javascript' src='lib/DAT.GUI.min.js'></script>
+		<script id="vertexShader" type="x-shader/x-vertex">
+
+			varying vec3 surfacePos;
+			uniform float time;
+			uniform float waveHeight;
+			uniform float waveLen;
+
+			void main() 
+			{ 
+				surfacePos = position;
+				surfacePos.y += sin(surfacePos.x/waveLen + time) * waveHeight;
+				gl_Position = projectionMatrix * modelViewMatrix * vec4(surfacePos, 1.0);
+			}
+		</script>
+
+			<!-- fragment shader a.k.a. pixel shader -->
+		<script id="fragmentShader" type="x-shader/x-vertex"> 
+			varying vec3 surfacePos;
+			const float checkSize = 5.0;
+			uniform float uScale;
+			//uniform float uOffset;
+			uniform float uTime;
+			uniform int uToggle;
+
+			void main() 
+			{
+				vec3 color;
+				vec3 position = surfacePos / uScale;
+				
+				if (uToggle == 0){
+					if (fract(position.x) < (0.5 + uTime) && fract(position.x) > (0.0 + uTime)){
+						if (fract(position.z) < 0.5){
+							color = vec3(1, 0, 1);
+						} else {
+							color = vec3(1, 1, 0);
+						}
+					} else {
+						if (fract(position.z) < 0.5){
+							color = vec3(1, 1, 0);
+						} else {
+							color = vec3(1, 0, 1);
+						}
+					}
+				} else {
+					if (fract(position.x) < (0.5 + uTime) && fract(position.x) > (0.0 + uTime)){
+						if (fract(position.z) < 0.5){
+							color = vec3(1, 1, 0);
+						} else {
+							color = vec3(1, 0, 1);
+						}
+					} else {
+						if (fract(position.z) < 0.5){
+							color = vec3(1, 0, 1);
+						} else {
+							color = vec3(1, 1, 0);
+						}
+					}
+				}
+				gl_FragColor = vec4(color, 1.0);
+			}  
+		</script>
+		<script language="javascript">
+			var scene, camera, renderer, dLight, controls, sphere, geo, mat, tick, fps, clock, offset, checkSize;
+			
+			setup();
+			//drawAxes();
+			animate();
+			
+			function render(){
+				tick = clock.getDelta();
+				time = 1/tick;
+				uniforms.uTime.value += 0.5/time;
+				uniforms.time.value = clock.getElapsedTime();
+				if (uniforms.uTime.value >= 0.5){
+					uniforms.uTime.value = 0;
+					if (uniforms.uToggle.value == 0){
+						uniforms.uToggle.value = 1;
+					} else {
+						uniforms.uToggle.value = 0;
+					}
+				}
+				renderer.render(scene, camera);
+			}
+			
+			function animate(){
+				requestAnimationFrame(animate);
+				controls.update();
+			}
+				
+			function drawAxes(){
+				var greenLine = new THREE.LineBasicMaterial({color: 0x00ff00});
+				var blueLine = new THREE.LineBasicMaterial({color: 0x0000ff});
+				var redLine = new THREE.LineBasicMaterial({color: 0xff0000});
+				var xAxisGeo = new THREE.Geometry();
+				var yAxisGeo = new THREE.Geometry();
+				var zAxisGeo = new THREE.Geometry();
+				xAxisGeo.vertices.push(new THREE.Vector3(-50,0,0));
+				xAxisGeo.vertices.push(new THREE.Vector3(50,0,0));
+				yAxisGeo.vertices.push(new THREE.Vector3(0,-50,0));
+				yAxisGeo.vertices.push(new THREE.Vector3(0,50,0));
+				zAxisGeo.vertices.push(new THREE.Vector3(0,0,-50));
+				zAxisGeo.vertices.push(new THREE.Vector3(0,0,50));
+				
+				var xAxis = new THREE.Line(xAxisGeo, greenLine);
+				var yAxis = new THREE.Line(yAxisGeo, blueLine);
+				var zAxis = new THREE.Line(zAxisGeo, redLine);
+				
+				scene.add(xAxis);
+				scene.add(yAxis);
+				scene.add(zAxis);
+			}
+			
+			function getChar(event){
+				event = event || window.event;
+				message(event.keyCode);
+			}
+			
+			function drawFlowerCenter(size){
+				geo = new THREE.SphereGeometry(size, size, size);
+				matrx = new THREE.Matrix4();
+				matrx.makeScale(1,0.25,1);
+				geo.applyMatrix(matrx);
+				centerMesh = new THREE.Mesh(geo, mat);
+				centerMesh.castShadow = true;
+				centerMesh.receiveShadow = true;
+				return centerMesh;
+			}
+			
+			// this function puts the flower petal meshes into a list
+			function drawPetals(size, number){
+				var stack = new Array();
+				matrx = new THREE.Matrix4();
+				mScale = new THREE.Matrix4();
+				mRot = new THREE.Matrix4();
+				mTrans = new THREE.Matrix4();
+				mScale.makeScale(1,0.25,0.5);
+				mTrans.makeTranslation(size*2, 0, 0);
+				for (var i = 0; i < number; i++){
+					geo = new THREE.SphereGeometry(size, size, size);
+					mRot.makeRotationY((2*(Math.PI) / number) * i);
+					matrx.multiplyMatrices(mRot, mScale);
+					matrx.multiply(mTrans);
+					geo.applyMatrix(matrx);	
+					petalMesh = new THREE.Mesh(geo, mat);
+					petalMesh.castShadow = true;
+					petalMesh.receiveShadow = true;
+					stack.push(petalMesh);
+				}
+				return stack;		
+			}
+			
+			function drawFlower(centerRadius, numPetals){
+				
+				center = drawFlowerCenter(centerRadius);
+				
+				petals = new drawPetals(centerRadius, numPetals);
+				for (var i = petals.length; i >= 0; i--){
+					center.add(petals.pop());
+				}
+				
+				return center;
+			}
+			
+			function message(msg){
+				document.getElementById('message').value=msg
+			}
+			
+			function debug(msg){
+				document.getElementById('debug').value=msg
+			}
+			
+			function changeCheckSize(){
+				uniforms.uScale.value = checkSize;
+				renderer.render(scene, camera);
+			}
+			
+			function changeHeight(val){
+				uniforms.waveHeight.value = val;
+				renderer.render(scene, camera);
+			}
+			
+			function changeLength(val){
+				uniforms.waveLen.value = val;
+				renderer.render(scene, camera);
+			}
+			
+			function setup(){
+				fps = 0.0;
+				offset = 0.0;
+				checkSize = 10;
+				scene = new THREE.Scene();
+				
+				clock = new THREE.Clock();
+				
+				camera = new THREE.PerspectiveCamera(10,
+					window.innerWidth/window.innerHeight, 1, 5000);
+				camera.position.set(0,500,600);
+				
+				renderer = new THREE.WebGLRenderer();
+				renderer.setSize(window.innerWidth, window.innerHeight);
+				
+				dLight = new THREE.DirectionalLight(0xffffff, 0.75);
+				dLight.position.set(0,1,0);
+				scene.add(dLight);
+				
+				uniforms = { time: { type: "f", value: 1.0 }, resolution: { type: "v2", value: new THREE.Vector2()}, uScale: {type: "f", value: checkSize }, uTime: {type: "f", value: offset}, uToggle: {type: "i", value: 0}, time: {type: "f", value: 0.0}, waveHeight: {type: "f", value: 6.0}, waveLen: {type: "f", value: 8.0}};
+				
+				mat = new THREE.ShaderMaterial( { uniforms: uniforms, 		vertexShader: document.getElementById( 'vertexShader' ).textContent, fragmentShader: document.getElementById( 'fragmentShader' ).textContent } );
+				
+				flower = drawFlower(20, 12);
+				scene.add(flower);
+				
+				document.onkeydown = getChar;
+				
+				document.body.appendChild(renderer.domElement);
+				
+				controls = new THREE.OrbitControls(camera,
+					renderer.domElement);
+				controls.addEventListener('change', render);
+
+				gui = new dat.GUI();
+	
+				parameters = 
+				{
+					x: 0, y: 30, z: 0,
+					checkerboardSize: 10.0,
+					waveHeight: 6.0,
+					waveLen: 8.0
+				};
+				
+				var folder = gui.addFolder('Stuff');
+				var checkSizeGUI = folder.add( parameters, 'checkerboardSize' ).min(1).max(16).step(0.5).name("Square Size").listen();
+				checkSizeGUI.onChange(
+					function(value)
+					{   checkSize = value; changeCheckSize();   }
+				);
+				
+				var waveHeightGUI = folder.add( parameters, 'waveHeight' ).min(1).max(10).step(0.5).name("Wave Height").listen();
+				waveHeightGUI.onChange(
+					function(value)
+					{changeHeight(value);}
+				);
+				
+				var waveLenGUI = folder.add(parameters, 'waveLen').min(4).max(12).step(0.5).name("Wave Length").listen();
+				waveLenGUI.onChange(
+					function(value)
+					{changeLength(value);}
+				);
+				
+				folder.open();
+			}
+						
+		</script>
+	</body>
+</html>

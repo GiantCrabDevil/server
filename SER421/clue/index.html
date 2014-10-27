@@ -1,0 +1,48 @@
+<html>
+  <head>
+    <title>CLUE</title>
+    <script src="clue.js"></script>
+  </head>
+  <body onload="loadPageData()">
+    <p id="choiceList">
+    </p>
+    <p>
+    <FORM id="userName">
+    Name:
+    <input id="nameBox" type="text" value="name here" onclick="this.select()"/>
+    <input id="nameBut" type="button" value="Enter" onclick="init()"/>
+    </FORM>
+    </p>
+    <p>
+    <FORM name="Choices">
+      <label>Guess Suspect:</label>
+      <select id="suspects" name="suspects">
+      </select> 
+      <br/>
+      <label>Guess Room:</label>
+      <select id="rooms" name="rooms">
+      </select>
+      <br/>
+      <label>Guess Weapon:</label>
+      <select id="weapons" name="weapons">
+      </select>
+      <br/>
+      <input id="guess" type="button" disabled="true" value="Guess" onclick="checkGuess()"/><br/>
+      <p id="output">
+      </p>
+      <input id="histBut" type="button" disabled="true" value="Show History" onClick="toggleHistory()"/><br/>
+      <p id="history">
+      </p>
+      <input id="recBut" type="button" disabled="true" value="Show Record" onClick="toggleRecord()"/><br/>
+      <p id="wl">
+      </p>
+      <p id="record">
+      </p>
+    </FORM>
+    <br/>
+    </p>
+    Debug: <span id="debug"></span>
+    <br/>
+    <input id="testBut" type="button" value="Show Winning Hand" onclick="test()"/>
+  </body>
+</html>

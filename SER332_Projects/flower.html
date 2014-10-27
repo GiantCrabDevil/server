@@ -1,0 +1,131 @@
+<html>
+	<head>
+		<title>Damon Cost - Flower</title>
+		<style>canvas { width: 90%; height: 90% }</style>
+	</head>
+	<body>
+		<a href="index.html"><br>
+		Click to return home.</a><br><br>
+		<form>
+			Message: <input type="text" id="message" value=" " size="45">
+			Debug: <input type="text" id="debug" value=" " size="35">
+		</form>
+		<script src="lib/three.js"></script>
+		<script src="lib/OrbitControls.js"></script>
+		<script language="javascript">
+			var scene, camera, renderer, aLight, controls, centerMat,
+				petalMat, centerMesh, petalMesh;
+			
+			setup();
+			drawAxes();
+			animate();
+			
+			function render(){
+				renderer.render(scene, camera);
+			}
+			
+			function animate(){
+				requestAnimationFrame(animate);
+				controls.update();
+			}
+			
+			function drawFlowerCenter(size){
+				geo = new THREE.SphereGeometry(size, size*8, size*8);
+				matrx = new THREE.Matrix4();
+				matrx.makeScale(1,0.25,1);
+				geo.applyMatrix(matrx);
+				centerMesh = new THREE.Mesh(geo, centerMat);
+				return centerMesh;
+			}
+			
+			// this function puts the flower petal meshes into a list
+			function drawPetals(size, number){
+				var stack = new Array();
+				matrx = new THREE.Matrix4();
+				mScale = new THREE.Matrix4();
+				mRot = new THREE.Matrix4();
+				mTrans = new THREE.Matrix4();
+				mScale.makeScale(1,0.25,0.5);
+				mTrans.makeTranslation(size*2, 0, 0);
+				for (var i = 0; i < number; i++){
+					geo = new THREE.SphereGeometry(size, size*8, size*8);
+					mRot.makeRotationY((2*(Math.PI) / number) * i);
+					matrx.multiplyMatrices(mRot, mScale);
+					matrx.multiply(mTrans);
+					geo.applyMatrix(matrx);	
+					petalMesh = new THREE.Mesh(geo, petalMat);
+					stack.push(petalMesh);
+				}
+				return stack;		
+			}
+			
+			function drawAxes(){
+				var greenLine = new THREE.LineBasicMaterial({color: 0x00ff00});
+				var blueLine = new THREE.LineBasicMaterial({color: 0x0000ff});
+				var redLine = new THREE.LineBasicMaterial({color: 0xff0000});
+				var xAxisGeo = new THREE.Geometry();
+				var yAxisGeo = new THREE.Geometry();
+				var zAxisGeo = new THREE.Geometry();
+				xAxisGeo.vertices.push(new THREE.Vector3(-50,0,0));
+				xAxisGeo.vertices.push(new THREE.Vector3(50,0,0));
+				yAxisGeo.vertices.push(new THREE.Vector3(0,-50,0));
+				yAxisGeo.vertices.push(new THREE.Vector3(0,50,0));
+				zAxisGeo.vertices.push(new THREE.Vector3(0,0,-50));
+				zAxisGeo.vertices.push(new THREE.Vector3(0,0,50));
+				
+				var xAxis = new THREE.Line(xAxisGeo, greenLine);
+				var yAxis = new THREE.Line(yAxisGeo, blueLine);
+				var zAxis = new THREE.Line(zAxisGeo, redLine);
+				
+				scene.add(xAxis);
+				scene.add(yAxis);
+				scene.add(zAxis);
+			}
+			
+			function message(msg){
+				document.getElementById('message').value=msg
+			}
+			
+			function debug(msg){
+				document.getElementById('debug').value=msg
+			}
+			
+			function setup(){
+				scene = new THREE.Scene();
+				
+				camera = new THREE.PerspectiveCamera(10,
+					window.innerWidth/window.innerHeight, 1, 1000);
+				camera.position.y = 550;
+				
+				renderer = new THREE.WebGLRenderer();
+				renderer.setSize(window.innerWidth, window.innerHeight);
+				
+				dLight = new THREE.DirectionalLight(0xffffff, 0.75);
+				//d2Light = new THREE.DirectionalLight(0xffffff, 0.75);
+				dLight.position.set(0,1,0);
+				//d2Light.position.set(0,-1,0);
+				//scene.add(d2Light);
+				scene.add(dLight);
+				
+				document.body.appendChild(renderer.domElement);			
+				
+				controls = new THREE.OrbitControls(camera,
+					renderer.domElement);
+				controls.addEventListener('change', render);
+				
+				centerMat = new THREE.MeshLambertMaterial({color: 0xf4dc3d});
+				petalMat = new THREE.MeshLambertMaterial({color: 0xf43dc6});
+				
+				center = drawFlowerCenter(6);
+				scene.add(center);
+				petals = new drawPetals(6, 20);
+				
+				for (var i = petals.length; i >= 0; i--){
+					scene.add(petals.pop());
+				}
+				
+			}
+			
+		</script>
+	</body>
+</html>

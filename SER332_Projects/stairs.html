@@ -1,0 +1,72 @@
+<html>
+	<head>
+		<title>Damon Cost - Stairs</title>
+		<style>canvas { width: 90%; height: 90% }</style>
+	</head>
+	<body>
+		<a href="index.html"><br>
+		Click to return home.</a><br><br>
+		<form>
+			Message: <input type="text" id="debug" value=" " size="35"><br>
+		</form>
+		<script src="lib/three.js"></script>
+		<script src="lib/OrbitControls.js"></script>
+		<script language="javascript">
+			var scene;
+			function message(msg){
+				document.getElementById('debug').value=msg
+			}
+			
+			function animate(){
+				requestAnimationFrame(animate);
+				controls.update();
+			}
+			
+			function render(){
+				renderer.render(scene, camera);
+			}
+			
+			function drawStairs(width, height){
+				scene = new THREE.Scene();
+				var depth = 10;
+				var vertMat = new THREE.MeshBasicMaterial({color: 0xff0000});
+				var horzMat = new THREE.MeshBasicMaterial({color: 0x0000ff});
+				var stepMesh;
+				var step;
+				for (var i = 0; i < 5; i++){
+					// logic for the vertical part of the stair
+					step = new THREE.CubeGeometry(width, height, depth);
+					stepMesh = new THREE.Mesh(step, vertMat);
+					stepMesh.position.set(0,i*(height+depth), i*(0-(height-depth)));	
+					scene.add(stepMesh);
+					
+					// logic for the horizontal part of the stair
+					step = new THREE.CubeGeometry(width, depth, height);
+					stepMesh = new THREE.Mesh(step, horzMat);
+					stepMesh.position.set(0, (i*(height+depth))+.5*height+.5*depth, (i*(0-(height-depth))-.5*height+.5*depth));	
+					scene.add(stepMesh);
+					
+				}
+			}
+
+			drawStairs(80,40);
+			var camera = new THREE.PerspectiveCamera(100, window.innerWidth/window.innerHeight, 1, 1000);
+			var renderer = new THREE.WebGLRenderer();
+			renderer.setSize(window.innerWidth, window.innerHeight);
+			var dLight = new THREE.DirectionalLight(0xffffff, 1);
+			dLight.position.set(200, 400, 500);
+			var aLight = new THREE.AmbientLight(0x222222);
+			scene.add(dLight);
+			scene.add(aLight);
+			
+			var controls = new THREE.OrbitControls(camera, renderer.domElement);
+			document.body.appendChild(renderer.domElement);
+			controls.addEventListener('change', render);
+			
+			camera.position.set(110,0,250);
+			
+			animate();
+			
+		</script>
+	</body>
+</html>

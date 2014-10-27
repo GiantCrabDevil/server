@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="style.css">
+<style>
+#map_canvas {
+        width: 500px;
+        height: 400px;
+      }
+</style>
+</head>
+<script src="lib.js" defer></script>
+<script src="https://maps.googleapis.com/maps/api/js"></script>
+<body onLoad="popPicklist(); initialize()">
+	<div>
+		<form id="post" autocomplete="on">
+			<br/>
+			<label for="owner">Owner Name: </label>
+			<input type="text" autofocus="true" name="owner" id="ownerNameInput"/>
+			<input type="button" value="Set Owner" onclick="createOwner()" id="ownerbtn"/>
+			<br/><br/>
+			<textarea id="idResponseArea" cols="60" rows="10" disabled="true" placeholder="Skynet response..."></textarea><br/>
+			<h1>POST</h1>
+			<label for="device">Device Name: </label>
+			<input type="text" name="device" id="deviceNameInput"/>
+			<select id="uuidselect0">
+			</select><br/>
+			<div id="properties">
+				<label for="addProp">Properties:</label>
+				<input type="button" value="Add Property" onclick="addProperty()" name="addProp" id="addPropBtn" disabled="true" /><br/>
+				<div id="prop0">
+					<b>Key: </b>
+					<input type="text" id="key0"/>
+					<b>Value: </b>
+					<input type="text" id="value0"/><br/>
+				</div>
+			</div>
+			<input type="button" value="Create" onclick="createDevice()" id="createbtn" disabled="true" />
+		</form>
+		<br/>
+		<form>
+			<h1>GET - By Id</h1>
+			<label for="device">Device Name: </label>
+			<input type="text" name="device" id="deviceInput"/>
+			<select id="uuidselect1">
+			</select><br/>
+			<input type="button" value="Submit Device" onclick="getDevice()" id="submitDevice" disabled="true" /><br/>
+		</form>
+		<br/>
+		<form>
+			<h1>GET - By ANDs</h1>
+			<input type="button" value="Add K:V" onclick="addKV()" id="addKVBtn" disabled="true" /><br/>
+			<div id="KVs">
+				<div id="kv0">
+					<b>Key: </b>
+					<input type="text" id="k0"/> 
+					<b>Value: </b>
+					<input type="text" id="v0"/> AND<br/>
+				</div>
+			</div>
+			<input type="button" value="Submit ANDs" onclick="searchDevice()" id="submitKVBtn" disabled="true" /><br/>
+		</form>
+		<br/>
+		<form>
+			<h1>DELETE - By Device</h1><br/>
+			<label for"deleteownerinput">Device Name: </label>
+			<input type="text" id="deleteOwnerInput" name="deleteownerinput"/>
+			<select id="uuidselect2">
+			</select><br/>
+			<input type="button" value="Delete" onclick="deleteDevice()" id="deletebutton" disabled="true" />
+		</form>
+		<br/>
+	</div>
+	<div id="map_canvas">
+    </div>
+</body>
+</html
