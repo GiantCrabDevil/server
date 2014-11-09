@@ -1,0 +1,19 @@
+echo "CACHE MANIFEST" > ser.manifest
+echo "CACHE:" >> ser.manifest
+for file in $(find ./media -type f -name "*.js")
+do
+	echo "$file"|sed 's/\.\///' >> ser.manifest
+done
+
+for file in $(find .. -type f -name "*.png")
+do
+	echo "$file" >> ser.manifest
+done
+echo "NETWORK:" >> ser.manifest
+for file in $(find ./media -type f ! -name "*.js")
+do
+	echo "$file"|sed 's/\.\///' >> ser.manifest
+done
+echo "nocache" >> ser.manifest
+echo "FALLBACK:" >> ser.manifest
+echo "nocache/cannotload.html" >> ser.manifest

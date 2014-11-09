@@ -22,7 +22,7 @@ function getBearerToken() {
 	
 	request.open('POST', url, true);
 	request.withCredentials = true;
-	request.setRequestHeader('Access-Control-Allow-Origin', '*');
+	//request.setRequestHeader('Access-Control-Allow-Origin', '*');
 	request.setRequestHeader('Authorization', credentials);
 	//request.setRequestHeader('Host', 'api.twitter.com');
 	//request.setRequestHeader('User-Agent', 'DamonTwitterTest');
