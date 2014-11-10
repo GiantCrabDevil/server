@@ -48,7 +48,6 @@ _static/last.png
 _static/next.png
 _static/pause.png
 _static/prev.png
-Labs/cannotload.html
 NETWORK:
 Labs/media/activecode.css
 Labs/media/basic(1).css
@@ -74,5 +73,6 @@ Labs/media/video.css
 Labs/media/widget.htm
 Labs/media/xd_arbiter(1).htm
 Labs/media/xd_arbiter.htm
+/offline
 FALLBACK:
-Labs/cannotload.html
+/offline /cannotload.html
