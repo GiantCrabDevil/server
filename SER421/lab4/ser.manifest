@@ -1,5 +1,5 @@
 CACHE MANIFEST
-# v1.1, 11092014
+# v1.0, 11092014
 CACHE:
 Labs/media/activecode.js
 Labs/media/all.js
@@ -48,6 +48,7 @@ _static/last.png
 _static/next.png
 _static/pause.png
 _static/prev.png
+Labs/cannotload.html
 NETWORK:
 Labs/media/activecode.css
 Labs/media/basic(1).css

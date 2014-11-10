@@ -10,6 +10,7 @@ for file in $(find ./_static -type f -name "*.png")
 do
 	echo "$file"|sed 's/\.\///' >> ser.manifest
 done
+echo "Labs/cannotload.html" >> ser.manifest
 echo "NETWORK:" >> ser.manifest
 for file in $(find ./Labs/media -type f ! -name "*.js")
 do
