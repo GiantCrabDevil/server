@@ -75,4 +75,4 @@ Labs/media/xd_arbiter(1).htm
 Labs/media/xd_arbiter.htm
 /offline
 FALLBACK:
-/offline /cannotload.html
+/offline offline/cannotload.html

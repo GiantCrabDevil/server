@@ -17,4 +17,4 @@ do
 done
 echo "/offline" >> ser.manifest
 echo "FALLBACK:" >> ser.manifest
-echo "/offline /cannotload.html" >> ser.manifest
+echo "/offline offline/cannotload.html" >> ser.manifest
