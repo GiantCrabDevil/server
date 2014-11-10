@@ -1,5 +1,5 @@
 CACHE MANIFEST
-# v1.0, 11092014
+# v1.3, 11092014
 CACHE:
 Labs/media/activecode.js
 Labs/media/all.js
@@ -75,4 +75,4 @@ Labs/media/xd_arbiter(1).htm
 Labs/media/xd_arbiter.htm
 /offline
 FALLBACK:
-/offline offline/cannotload.html
+/ Labs/cannotload.html
