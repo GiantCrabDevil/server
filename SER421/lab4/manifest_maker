@@ -1,0 +1,20 @@
+echo "CACHE MANIFEST" > ser.manifest
+echo "# v1.0, 11092014" >> ser.manifest
+echo "CACHE:" >> ser.manifest
+for file in $(find ./Labs/media -type f -name "*.js")
+do
+	echo "$file"|sed 's/\.\///' >> ser.manifest
+done
+
+for file in $(find ./_static -type f -name "*.png")
+do
+	echo "$file"|sed 's/\.\///' >> ser.manifest
+done
+echo "NETWORK:" >> ser.manifest
+for file in $(find ./Labs/media -type f ! -name "*.js")
+do
+	echo "$file"|sed 's/\.\///' >> ser.manifest
+done
+#echo "nocache" >> ser.manifest
+echo "FALLBACK:" >> ser.manifest
+echo "Labs/cannotload.html" >> ser.manifest

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- saved from url=(0074)http://interactivepython.org/runestone/static/thinkcspy/Labs/lab12_02.html -->
-<html manifest="ser.manifest" xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<html manifest="../ser.manifest" xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     
     
     <title>CST100: Object Oriented Software Development</title>
@@ -326,8 +326,28 @@ times each letter occurs.  Make sure it is in alphabetical order from left to ri
 
 </script>
 
+<script type="text/javascript">
+    window.addEventListener('load', function(e) {
+      if (window.applicationCache) {
+        window.applicationCache.addEventListener('updateready', function(e) {
+          if (window.applicationCache.status == window.applicationCache.UPDATEREADY) {
+              window.applicationCache.swapCache();
+              if (confirm('A new version of the appchache is available. Reload page?')) {
+                    window.location.reload();
+              }
+            } else {
+              // no manifest change..
+            }
+        }, false);
 
+        window.applicationCache.addEventListener('noupdate', function(e) {
 
+          alert('Appcache is up to date. ');
 
+        }, false);
+
+      }
+    }, false);
+</script>
   
 </body></html>
