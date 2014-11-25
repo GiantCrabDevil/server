@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html ng-app='WeatherApp'>
+	<head>
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap-theme.min.css">
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
+		<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.3/angular.min.js"></script>
+		<script type='text/javascript' src='main.js'></script>
+		<title> SER432 - Lab 5 - Damon Cost/Gabriel Mann </title>
+	</head>
+	<body>
+		<div class='container' ng-controller='WeatherController'>
+		<div class='panel panel-primary'>
+		<div class='panel-heading'>
+			<h2 class='panel-title'>SER432 - Lab 5 - Damon Cost/Garriel Mann</h2>
+		</div>
+		<div class='row'>
+		<div class='col-lg-4' ng-repeat='item in items'>
+			<div class='panel panel-info'>
+			<div class='panel-heading'>
+				<h3 class='panel-title'>{{item.cityName}}</h3>
+			</div>
+			<div class='panel-body'>
+				<p>Temperature: {{item.temp}}&deg;C</p>
+				<p>Humidity: {{item.hum}}%</p>
+				<p>Wind Speed: {{item.wind}} MPH</p>
+				<p>{{item.cloud}}% Cloud Coverage</p>
+				<input ng-model='item.cityName' id='name' type="text" placeholder='{{item.cityName}}'/>
+				<button type='button' class='btn btn-primary btn-sm' ng-click="update(item)">Update</button>
+			</div>			
+			</div>			
+		</div>
+		</div>
+		<div class='row'>
+		<div class='col-lg-3'>
+			<div class='panel panel-success'>
+			<div class='panel-heading'>
+				<h3 class='panel-title'>Calculations</h3>
+			</div>
+			<div class='panel-body'>
+				<p>Average Temperature: {{calcs.avgTemp}}&deg;C</p>
+				<p>Hottest City: {{calcs.hottest}}</p>
+				<p>Average Humidity: {{calcs.avgHum}}%</p>
+				<p>Highest Humidity: {{calcs.highHum}}</p>
+				<p>Best Weather: {{calcs.best}}</p>
+				<p>Worst Weather: {{calcs.worst}}</p>
+			</div>			
+			</div>
+		</div>
+		</div>
+		</div>
+		</div>
+	</body>
+</html>

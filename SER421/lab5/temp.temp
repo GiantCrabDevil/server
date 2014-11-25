@@ -1,0 +1,17 @@
+// var output = document.getElementById('content');
+	// var output2 = document.getElementById('content2');
+	//var xmlhttp = new XMLHttpRequest();
+	//xmlhttp.onreadystatechange=function() {
+	// 	if (xmlhttp.readyState==4 && xmlhttp.status==200) {
+	// 		var jObj = JSON.parse(xmlhttp.responseText);
+	// 		output.innerHTML = xmlhttp.responseText;
+	// 		cityName.innerHTML = jObj.name + ', ' + jObj.sys.country;
+	// 		temp.innerHTML = ((parseFloat(jObj.main.temp) - 273.15) * 1.8 + 32).toFixed(2) + ' degrees F';
+	// 		hum.innerHTML = jObj.main.humidity + '% humidity';
+	// 		wind.innerHTML = (jObj.wind.speed * 2.23694).toFixed(2) +  ' mph windspeed';
+	// 		cloud.innerHTML = jObj.clouds.all + '% cloudyness';
+	// 	}
+	// }
+
+	// xmlhttp.open("GET", "http://api.openweathermap.org/data/2.5/weather?q=phoenix,us", true);
+	// xmlhttp.send();
